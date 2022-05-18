@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::stdin;
 use std::net::UdpSocket;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 
 #[derive(Debug)]
 enum MessageType {
@@ -33,7 +33,7 @@ fn send_to_socket(ip: &str, port: &str, message: &Vec<u8>) -> std::io::Result<()
     let ip_and_port = format!("{}:{}", ip, port);
     println!("Connecting to: {}", ip_and_port);
     let socket = UdpSocket::bind("127.0.0.1:0")?;
-
+    socket.set_read_timeout(Some(Duration::new(1,0)))?;
     let start = Instant::now();
     socket.send_to(message, ip_and_port)?;
     // Receives a single datagram message on the socket. If `buf` is too small to hold
@@ -89,7 +89,10 @@ fn main() {
 
     let message = serde_json::to_string(&message).unwrap().into_bytes();
 
-    send_to_socket(ip_addr, port, &message).expect("Failed to send message");
+    match send_to_socket(ip_addr, port, &message) {
+      Ok(_) => println!("Message sent"),
+      Err(e) => println!("Error: {}", e),
+    }
   }
 }
 // {"type": "int", "val": "1"}
