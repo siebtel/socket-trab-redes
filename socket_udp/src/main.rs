@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::io::stdin;
 use std::net::UdpSocket;
 use std::time::{Instant, Duration};
+use local_ip_address::local_ip;
 
 #[derive(Deserialize, Serialize, Debug)]
 enum MessageType {
@@ -37,8 +38,10 @@ fn define_type(raw_message: &str) -> MessageType {
 fn send_to_socket(ip: &str, port: &str, message: &Vec<u8>) -> std::io::Result<()> {
   {
     let ip_and_port = format!("{}:{}", ip, port);
+    let my_local_ip = local_ip().unwrap();
+    println!("This is my local IP address: {:?}", my_local_ip);
     println!("Connecting to: {}\n", ip_and_port);
-    let socket = UdpSocket::bind("127.0.0.1:0")?;
+    let socket = UdpSocket::bind("0.0.0.0:0")?;
     socket.set_read_timeout(Some(Duration::new(2,0)))?;
     let start = Instant::now();
     socket.send_to(message, ip_and_port)?;
